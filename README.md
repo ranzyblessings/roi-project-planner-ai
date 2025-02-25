@@ -6,6 +6,8 @@ constraints. It sends requests to the ROI Project Planner backend for further pr
 To support AI functions, we utilize **TensorFlow**, **Pandas**, **NumPy**, and **Scikit-learn** for tasks such as data
 processing, machine learning model development, and performance optimization.
 
+[![Run Tests](https://github.com/ranzyblessings/roi-project-planner-ai/actions/workflows/build-and-test.yaml/badge.svg)](https://github.com/ranzyblessings/roi-project-planner-ai/actions/workflows/build-and-test.yaml)
+
 ## How to Set Up & Run Locally
 
 ### Prerequisites
