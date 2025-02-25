@@ -1,0 +1,30 @@
+[tool.poetry]
+name = "roi-project-planner-ai"
+version = "0.1.0"
+description = "AI-powered system that learns and posts requests to ROI project planner."
+authors = ["Ranzy Blessings"]
+package-mode = false
+
+[tool.poetry.dependencies]
+python = "^3.12"
+tensorflow = "^2.18.0"
+pandas = "^2.2.3"
+requests = "^2.32.3"
+numpy = "<2.2.0"
+scikit-learn = "^1.6.1"
+
+[tool.poetry.dev-dependencies]
+pytest = "^8.0.0"
+black = "^24.0.0"
+flake8 = "^7.0.0"
+
+[tool.poetry.scripts]
+start = "src.main:main"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.4"
+requests-mock = "^1.12.1"
+
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
