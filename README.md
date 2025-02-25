@@ -4,7 +4,8 @@ The **AI-powered ROI Project Planner** uses machine learning to select the most 
 constraints. It sends requests to the ROI Project Planner backend for further processing.
 
 To support AI functions, we utilize **TensorFlow**, **Pandas**, **NumPy**, and **Scikit-learn** for tasks such as data
-processing, machine learning model development, and performance optimization.
+processing, machine learning model development, and performance optimization. Specifically, we train a TensorFlow model
+to learn project selection, optimizing decision-making based on historical data and financial constraints.
 
 [![Run Tests](https://github.com/ranzyblessings/roi-project-planner-ai/actions/workflows/build-and-test.yaml/badge.svg)](https://github.com/ranzyblessings/roi-project-planner-ai/actions/workflows/build-and-test.yaml)
 
