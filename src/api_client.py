@@ -1,55 +1,121 @@
 import logging
+from typing import List, Dict, Any, Optional
 
-import requests
+from requests import Session, RequestException
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S"
+)
 logger = logging.getLogger(__name__)
 
 
+class APIConfig:
+    """Configuration class for API client settings."""
+    DEFAULT_BASE_URL = "http://localhost:8080/api/v1"
+    HEADERS = {"Content-Type": "application/json"}
+    TIMEOUT = 10  # seconds
+
+
 class APIClient:
-    """Handles HTTP requests to the ROI Project Planner API."""
+    """
+    A robust HTTP client for interacting with the ROI Project Planner API.
 
-    def __init__(self, base_url="http://localhost:8080/api/v1"):
-        self.base_url = base_url
+    Attributes:
+        base_url: Base URL for API endpoints.
+        session: Persistent HTTP session for connection pooling.
+    """
 
-    def create_projects(self, projects):
-        """Sends a POST request to create projects."""
-        url = f"{self.base_url}/projects"
-        headers = {"Content-Type": "application/json"}
+    def __init__(self, base_url: str = APIConfig.DEFAULT_BASE_URL, session: Optional[Session] = None) -> None:
+        """
+        Initialize the API client with a base URL and optional session.
 
+        Args:
+            base_url: Base URL for the API (default: localhost).
+            session: Optional requests Session for dependency injection (default: new Session).
+        """
+        self.base_url = base_url.rstrip("/")  # Ensure no trailing slash
+        self.session = session if session is not None else Session()
+        self.session.headers.update(APIConfig.HEADERS)
+        logger.debug(f"APIClient initialized with base_url: {self.base_url}")
+
+    def _request(self, method: str, endpoint: str, json: Optional[Dict] = None) -> Optional[Dict]:
+        """
+        Generic method to handle HTTP requests with error handling.
+
+        Args:
+            method: HTTP method (e.g., 'GET', 'POST').
+            endpoint: API endpoint path (relative to base_url).
+            json: Payload for POST requests.
+
+        Returns:
+            JSON response or None if the request fails.
+        """
+        url = f"{self.base_url}/{endpoint.lstrip('/')}"
         try:
-            response = requests.post(url, json=projects, headers=headers)
+            response = self.session.request(
+                method=method,
+                url=url,
+                json=json,
+                timeout=APIConfig.TIMEOUT
+            )
             response.raise_for_status()
-            logger.info(f"Projects created successfully: {response.json()}")
             return response.json()
-        except requests.exceptions.RequestException as e:
-            logger.error(f"Error creating projects: {e}")
+        except RequestException as e:
+            logger.error(f"API request failed: {method} {url} - {str(e)}")
             return None
 
-    def get_projects(self):
-        """Fetches all projects from the API."""
-        url = f"{self.base_url}/projects"
-        try:
-            response = requests.get(url)
-            response.raise_for_status()
-            response_json = response.json()
-            return response_json.get("data", [])  # Extracts the list of projects
-        except requests.exceptions.RequestException as e:
-            logger.error(f"Error fetching projects: {e}")
-            return []
+    def create_projects(self, projects: List[Dict[str, Any]]) -> Optional[Dict]:
+        """
+        Create projects via POST request.
 
-    def maximize_capital(self, max_projects, initial_capital):
-        """Sends a POST request to select the best projects based on capital."""
-        url = f"{self.base_url}/capital/maximization"
-        headers = {"Content-Type": "application/json"}
-        payload = {"maxProjects": max_projects, "initialCapital": str(initial_capital)}
+        Args:
+            projects: List of project dictionaries to create.
 
-        try:
-            response = requests.post(url, json=payload, headers=headers)
-            response.raise_for_status()
-            logger.info(f"Optimal projects selected: {response.json()}")
-            return response.json()
-        except requests.exceptions.RequestException as e:
-            logger.error(f"Error selecting projects: {e}")
-            return None
+        Returns:
+            API response JSON or None if the request fails.
+        """
+        response = self._request("POST", "/projects", json=projects)
+        if response is not None:
+            logger.info(f"Projects created successfully: {response}")
+        return response
+
+    def get_projects(self) -> List[Dict[str, Any]]:
+        """
+        Fetch all projects from the API.
+
+        Returns:
+            List of project dictionaries, empty list if the request fails.
+        """
+        response = self._request("GET", "/projects")
+        if response is not None:
+            projects = response.get("data", [])
+            logger.info(f"Fetched {len(projects)} projects.")
+            return projects
+        return []
+
+    def maximize_capital(self, max_projects: int, initial_capital: float) -> Optional[Dict]:
+        """
+        Select optimal projects based on capital constraints.
+
+        Args:
+            max_projects: Maximum number of projects to select.
+            initial_capital: Available initial capital.
+
+        Returns:
+            API response JSON or None if the request fails.
+        """
+        payload = {
+            "maxProjects": max_projects,
+            "initialCapital": str(initial_capital)  # API expects string
+        }
+        response = self._request("POST", "/capital/maximization", json=payload)
+        if response is not None:
+            logger.info(f"Optimal projects selected: {response}")
+        return response
+
+    def close(self) -> None:
+        """Close the session to free resources."""
+        self.session.close()
+        logger.debug("APIClient session closed.")
