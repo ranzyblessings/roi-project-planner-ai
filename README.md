@@ -19,7 +19,7 @@ tailored to meet our requirements._
 - [ROI Project Planner (Backend)](https://github.com/ranzyblessings/roi-project-planner) - Must be installed and running
   locally.
 - [Python v3.12.7](https://www.python.org/) (or the latest version).
-- [Poetry v2.1](https://python-poetry.org/docs/) (or the latest version).
+- [Poetry v1.8.3](https://python-poetry.org/docs/) (or the latest version).
 
 ### Installation
 
